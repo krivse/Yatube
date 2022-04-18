@@ -8,7 +8,6 @@
   {% include 'posts/includes/switcher.html' %}
   <div class="container py-5">     
     <h1> Подписки </h1>
-      {% cache 20 index_page page_obj.number %}
       {% for post in page_obj %}
       <article>
         <ul>
@@ -28,5 +27,4 @@
       </article>
       {% endfor %}
       {% include 'posts/includes/paginator.html' %}
-      {% endcache %} 
 {% endblock %}

@@ -121,14 +121,6 @@ class PostViewsTests(TestCase):
         second_object = response.content
         self.assertEqual(first_object, second_object)
 
-    def test_follow_profile(self):
-        follow_count = Follow.objects.count()
-        Follow.objects.create(
-            user=self.user,
-            author=self.user
-        )
-        self.assertEqual(Follow.objects.count(), follow_count + 1)
-
 
 class PaginatorViewsTest(TestCase):
     @classmethod
@@ -173,3 +165,66 @@ class PaginatorViewsTest(TestCase):
         for test_url in urls_names:
             response = self.client.get(test_url + '?page=2')
             self.assertEqual(len(response.context['page_obj']), 3)
+
+
+class TestFollowing(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.follower = User.objects.create_user(username='follower')
+        cls.author = User.objects.create_user(username='author')
+        cls.not_follower = User.objects.create_user(username='not_follower')
+        cls.post = Post.objects.create(
+            author=cls.author,
+            text='Привет подписчики!',
+        )
+
+    def setUp(self) -> None:
+        self.follower_client = Client()
+        self.follower_client.force_login(self.follower)
+
+    def test_create_follow(self):
+        """Проверка подписки для авторизованного пользователя."""
+        self.follower_client.post(
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.author.username}),
+            follow=True,
+        )
+        self.assertTrue(
+            Follow.objects.filter(
+                user=self.follower, author=self.author
+            ).exists()
+        )
+
+    def test_delete_follow(self):
+        """Проверка удаления подписки."""
+
+        self.follower_client.post(
+            reverse('posts:profile_unfollow',
+                    kwargs={'username': self.author.username}),
+            follow=True,
+        )
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.follower, author=self.author
+            ).exists()
+        )
+
+    def test_followers_see_post(self):
+        """Проверка, подписанные пользователи видят посты авторов"""
+        Follow.objects.create(
+            user=self.follower,
+            author=self.author,
+        )
+        response = self.follower_client.get(
+            reverse('posts:follow_index')
+        )
+        self.assertEqual(response.context.get('post').text,
+                         'Привет подписчики!')
+
+    def test_not_followers_dont_see_post(self):
+        """Проверка, неподписанные пользователи не видят посты авторов"""
+        not_follower_client = Client()
+        not_follower_client.force_login(self.follower)
+        response = not_follower_client.get(reverse('posts:follow_index'))
+        self.assertFalse(response.context.get('post'))
