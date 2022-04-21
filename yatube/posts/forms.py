@@ -10,6 +10,9 @@ class PostForm(forms.ModelForm):
                   'group',
                   'image',
                   )
+        labels = {
+            'image': ('Картинка'),
+        }
 
     def clean_text(self):
 
