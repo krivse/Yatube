@@ -6,12 +6,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from posts.models import Group, Post, Comment, User
+from posts.forms import PostForm
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
-class PostViewsTests(TestCase):
+class PostFormsTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -26,6 +27,7 @@ class PostViewsTests(TestCase):
             author=cls.author,
             group=cls.group,
         )
+        cls.form = PostForm()
 
     @classmethod
     def tearDownClass(cls):
@@ -105,4 +107,28 @@ class PostViewsTests(TestCase):
         self.assertTrue(Comment.objects.filter(
             text='Текст комментария',
             author=self.author).exists()
+        )
+
+    def test_correct_error(self):
+        small_gif = (b'text')
+        empty_image = SimpleUploadedFile(
+            name='img_file.txt',
+            content=small_gif,
+            content_type='text/plain'
+        )
+        form_data = {
+            'text': 'Текстовая пост',
+            'group': self.group.id,
+            'image': empty_image,
+        }
+        response = self.author_client.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True
+        )
+        self.assertFormError(
+            response,
+            'form',
+            'image',
+            'Загрузите правильное изображение.'
         )
