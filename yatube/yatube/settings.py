@@ -24,9 +24,10 @@ SECRET_KEY = os.getenv(
     "SECRET_KEY", default="(!k5jaojo25zzlp7=$r^9u0q%1x_u%u8*%+cpzy5(!p0i-y9@%")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
+    '84.252.141.235',
     'localhost',
     '127.0.0.1',
     '[::1]',
