@@ -5,7 +5,6 @@ User = get_user_model()
 
 
 class Group(models.Model):
-
     title = models.CharField(
         max_length=200,
         verbose_name='Заголовок',
@@ -21,7 +20,6 @@ class Group(models.Model):
 
 
 class Post(models.Model):
-
     text = models.TextField(
         verbose_name='Текст поста',
         help_text='Введите текст поста')
@@ -43,13 +41,10 @@ class Post(models.Model):
         verbose_name='Группа',
         help_text='Группа, к которой '
         'будет относиться пост')
-    # Поле для картинки (необязательное)
     image = models.ImageField(
         upload_to='posts/',
         blank=True
     )
-    # Аргумент upload_to указывает директорию,
-    # в которую будут загружаться пользовательские файлы.
 
     class Meta():
         ordering = ('-pub_date',)
